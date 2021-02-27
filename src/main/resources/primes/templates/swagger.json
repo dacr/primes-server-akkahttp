@@ -35,6 +35,46 @@
           }
         }
       }
+    },
+    "/random": {
+      "get": {
+        "summary": "Get a random prime number among those already computed",
+        "parameters": [
+          {
+            "name":"lowerLimit",
+            "description": "random prime numbers range lower limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name":"upperLimit",
+            "description": "random prime numbers range upper limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no primes number available yet, or your range is beyond limit"
+          }
+        }
+      }
     }
   },
   "components": {

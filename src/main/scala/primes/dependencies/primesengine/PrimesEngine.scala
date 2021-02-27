@@ -10,7 +10,7 @@ trait PrimesEngine {
 
   def randomPrime(): Future[Option[BigInt]]
 
-  def randomPrimeBetween(lowerLimit: BigInt, upperLimit: BigInt): Future[Option[BigInt]]
+  def randomPrimeBetween(lowerLimit: Option[BigInt], upperLimit: Option[BigInt]): Future[Option[BigInt]]
 
   def isPrime(value: BigInt): Future[Option[Boolean]]
 }

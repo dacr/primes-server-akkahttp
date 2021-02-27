@@ -30,11 +30,14 @@ import java.util.UUID
 case class PrimesRouting(dependencies: ServiceDependencies) extends Routing with DateTimeTools {
   val apiURL = dependencies.config.primes.site.apiURL
   val meta = dependencies.config.primes.metaInfo
+  val engine = dependencies.engine
   val startedDate = now()
   val instanceUUID = UUID.randomUUID().toString
 
+  implicit val ec = scala.concurrent.ExecutionContext.global
+
   override def routes: Route = pathPrefix("api") {
-    info
+    info ~ random
   }
 
   def info: Route = {
@@ -42,12 +45,27 @@ case class PrimesRouting(dependencies: ServiceDependencies) extends Routing with
       path("info") {
         complete(
           Map(
-            "instanceUUID"->instanceUUID,
+            "instanceUUID" -> instanceUUID,
             "startedOn" -> epochToUTCDateTime(startedDate),
             "version" -> meta.version,
             "buildDate" -> meta.buildDateTime
           )
         )
+      }
+    }
+  }
+
+  def random: Route = {
+    get {
+      path("random") {
+        parameters(
+          "lowerLimit".as[BigInt].optional,
+          "upperLimit".as[BigInt].optional
+        ) { (lowerLimit, upperLimit) =>
+          complete {
+            engine.randomPrimeBetween(lowerLimit, upperLimit)
+          }
+        }
       }
     }
   }

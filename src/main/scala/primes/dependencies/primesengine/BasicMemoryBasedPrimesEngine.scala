@@ -4,9 +4,10 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.util.Timeout
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import fr.janalyse.primes.PrimesGenerator
+import org.slf4j.LoggerFactory
 import primes.PrimesConfig
 
 import scala.concurrent.Future
@@ -19,12 +20,13 @@ object BasicMemoryBasedPrimesEngine {
 
 
 class BasicMemoryBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngine {
-
-  val maxUpperLimit = 5_000_000
+  val logger = LoggerFactory.getLogger(getClass)
+  val maxPrimesCount = primesConfig.behavior.maxPrimesCount
 
   // -----------------------------------------------------------------
 
   def min(x: BigInt, y: BigInt): BigInt = if (x < y) x else y
+  def max(x: BigInt, y: BigInt): BigInt = if (x > y) x else y
 
   // -----------------------------------------------------------------
 
@@ -34,7 +36,7 @@ class BasicMemoryBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEng
 
   case class RandomPrimeRequest(replyTo: ActorRef[Option[BigInt]]) extends PrimesCommand
 
-  case class RandomPrimeBetweenRequest(lowerLimit: BigInt, upperLimit: BigInt, replyTo: ActorRef[Option[BigInt]]) extends PrimesCommand
+  case class RandomPrimeBetweenRequest(lowerLimit: Option[BigInt], upperLimit: Option[BigInt], replyTo: ActorRef[Option[BigInt]]) extends PrimesCommand
 
   case class MaxKnownPrimesNumberRequest(replyTo: ActorRef[Option[BigInt]]) extends PrimesCommand
 
@@ -63,9 +65,17 @@ class BasicMemoryBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEng
         Behaviors.same
       // ------------------------------
       case RandomPrimeBetweenRequest(lowerLimit, upperLimit, replyTo) =>
-        val fromIndex = knownPrimes.indexWhere(_ >= min(lowerLimit, maxUpperLimit))
-        val toIndex = knownPrimes.indexWhere(_ > min(upperLimit, maxUpperLimit))
-        val size = toIndex - fromIndex
+        val lowestPrime = knownPrimes.headOption.getOrElse(BigInt(0))
+        val highestPrime = knownPrimes.lastOption.getOrElse(BigInt(0))
+        val fromIndex = lowerLimit match {
+          case None => 0
+          case Some(limit) => knownPrimes.indexWhere(_ >= max(limit, lowestPrime))
+        }
+        val toIndex = upperLimit match {
+          case None => knownPrimes.size - 1
+          case Some(limit) => knownPrimes.indexWhere(_ >= min(limit, highestPrime))
+        }
+        val size = toIndex - fromIndex + 1
         val result = if (size <= 0) None else {
           Option(knownPrimes(fromIndex + Random.nextInt(size)))
         }
@@ -90,10 +100,15 @@ class BasicMemoryBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEng
   // -----------------------------------------------------------------
 
   val primesGenerator = Future {
-    val ngen = new PrimesGenerator[Long] // Faster than BigInt
-    ngen.primes.take(maxUpperLimit).map(v => BigInt(v)).foreach { value =>
-      primesSystem ! NewPrimeComputed(value)
-    }
+    logger.info(s"Start feeding with primes number up to $maxPrimesCount")
+    val primesGenerator = new PrimesGenerator[Long] // Faster than BigInt
+    primesGenerator
+      .primes
+      .map(v => BigInt(v))
+      .zip(Iterator.iterate(BigInt(1))(_ + 1))
+      .takeWhile{case (prime, pos) => pos < maxPrimesCount}
+      .map{case (prime, pos) => prime}
+      .foreach { value => primesSystem ! NewPrimeComputed(value)}
   }
 
   // -----------------------------------------------------------------
@@ -110,7 +125,7 @@ class BasicMemoryBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEng
     primesSystem.ask(RandomPrimeRequest)
   }
 
-  override def randomPrimeBetween(lowerLimit: BigInt, upperLimit: BigInt): Future[Option[BigInt]] = {
+  override def randomPrimeBetween(lowerLimit: Option[BigInt], upperLimit: Option[BigInt]): Future[Option[BigInt]] = {
     primesSystem.ask(RandomPrimeBetweenRequest(lowerLimit, upperLimit, _))
   }
 
