@@ -17,11 +17,23 @@
         <p class="text-justify">
             <b>{{context.appcode}}</b> service with API and arts features.
         </p>
-        <ul>
-            <li> A randomly chosen primes number : {{randomPrimeNumber}}</li>
-            <li> Already computed primes number in store : {{computedCount}}</li>
-            <li> Highest computed known prime number : {{maxKnown}}</li>
-        </ul>
+
+        <table width="100%">
+            <tr>
+                <td>
+                    <ul>
+                        <li> A randomly chosen prime number : <b>{{randomPrimeNumber}}</b></li>
+                        <li> Already computed primes number in store : <b>{{computedCount}}</b></li>
+                        <li> Highest computed known prime number : <b>{{maxKnown}}</b></li>
+                    </ul>
+                </td>
+                <td>
+                    <p align="right">
+                        <img src="{{context.base}}/images/ulam-spiral-64.png"/>
+                    </p>
+                </td>
+            </tr>
+        </table>
         <p>
             Take a look to the <a href="{{context.swaggerUIURL}}">Swagger API specification</a> to use this service
             or go to <a href="{{context.projectURL}}">the {{context.appcode}} github repository</a> if you want
