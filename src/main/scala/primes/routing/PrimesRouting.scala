@@ -15,12 +15,9 @@
  */
 package primes.routing
 
-import akka.http.scaladsl.server.Directives.pathEndOrSingleSlash
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.stream.scaladsl.Source
-import org.json4s.{Extraction, JField, JObject, JValue}
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport._
 import primes.ServiceDependencies
 import primes.tools.DateTimeTools
@@ -37,7 +34,7 @@ case class PrimesRouting(dependencies: ServiceDependencies) extends Routing with
   implicit val ec = scala.concurrent.ExecutionContext.global
 
   override def routes: Route = pathPrefix("api") {
-    info ~ random
+    concat(info, random)
   }
 
   def info: Route = {
@@ -62,12 +59,12 @@ case class PrimesRouting(dependencies: ServiceDependencies) extends Routing with
           "lowerLimit".as[BigInt].optional,
           "upperLimit".as[BigInt].optional
         ) { (lowerLimit, upperLimit) =>
-          complete {
-            engine.randomPrimeBetween(lowerLimit, upperLimit)
+          onSuccess(engine.randomPrimeBetween(lowerLimit, upperLimit)) {
+            case Some(value) => complete(value)
+            case None => complete(StatusCodes.NotFound -> "Invalid range or no primes number found")
           }
         }
       }
     }
   }
-
 }

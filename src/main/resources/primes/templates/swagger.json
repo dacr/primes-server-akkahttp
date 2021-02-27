@@ -41,7 +41,7 @@
         "summary": "Get a random prime number among those already computed",
         "parameters": [
           {
-            "name":"lowerLimit",
+            "name": "lowerLimit",
             "description": "random prime numbers range lower limit",
             "in": "query",
             "required": false,
@@ -50,7 +50,7 @@
             }
           },
           {
-            "name":"upperLimit",
+            "name": "upperLimit",
             "description": "random prime numbers range upper limit",
             "in": "query",
             "required": false,
@@ -71,7 +71,14 @@
             }
           },
           "404": {
-            "description": "no primes number available yet, or your range is beyond limit"
+            "description": "no primes number available yet, or your range is beyond limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
