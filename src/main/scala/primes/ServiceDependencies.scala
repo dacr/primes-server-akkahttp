@@ -15,12 +15,19 @@
  */
 package primes
 
+import primes.dependencies.primesengine.{BasicPrimesEngine, PrimesEngine}
+
 trait ServiceDependencies {
   val config:ServiceConfig
+  val engine:PrimesEngine
 }
 
 object ServiceDependencies {
-  def defaults:ServiceDependencies = new ServiceDependencies {
-    override val config: ServiceConfig = ServiceConfig()
+  def defaults:ServiceDependencies = {
+    val chosenConfig = ServiceConfig()
+    new ServiceDependencies {
+      override val config: ServiceConfig = chosenConfig
+      override val engine: PrimesEngine = BasicPrimesEngine(chosenConfig.primes)
+    }
   }
 }

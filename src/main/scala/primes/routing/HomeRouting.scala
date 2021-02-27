@@ -31,7 +31,7 @@ case class HomeRouting(dependencies: ServiceDependencies) extends Routing {
     get {
       val homeContext = HomeContext(
         context = pageContext,
-        randomPrimeNumber = "17"
+        randomPrimeNumber = dependencies.engine.randomPrime().toString()
       )
       val content = homeLayout(homeContext.asContext)
       val contentType = `text/html` withCharset `UTF-8`
