@@ -15,11 +15,13 @@
         <h1><img src="{{context.base}}/images/logo-base-64.png"/> <a href="{{context.base}}">{{context.title}}</a></h1>
 
         <p class="text-justify">
-            <b>{{context.appcode}}</b> service with API and arts features. A randomly chosen primes number :
+            <b>{{context.appcode}}</b> service with API and arts features.
         </p>
-        <p align="center">
-            {{randomPrimeNumber}}
-        </p>
+        <ul>
+            <li> A randomly chosen primes number : {{randomPrimeNumber}}</li>
+            <li> Already computed primes number in store : {{computedCount}}</li>
+            <li> Highest computed known prime number : {{maxKnown}}</li>
+        </ul>
         <p>
             Take a look to the <a href="{{context.swaggerUIURL}}">Swagger API specification</a> to use this service
             or go to <a href="{{context.projectURL}}">the {{context.appcode}} github repository</a> if you want

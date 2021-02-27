@@ -1,11 +1,18 @@
 package primes.dependencies.primesengine
 
+import scala.concurrent.Future
+
 trait PrimesEngine {
-  def randomPrime(): BigInt
 
-  def randomPrimeBetween(lowerLimit: BigInt, upperLimit: BigInt): BigInt
+  def knownPrimesNumberCount(): Future[BigInt]
 
-  def isPrime(value: BigInt): Boolean
+  def maxKnownPrimesNumber():Future[Option[BigInt]]
+
+  def randomPrime(): Future[Option[BigInt]]
+
+  def randomPrimeBetween(lowerLimit: BigInt, upperLimit: BigInt): Future[Option[BigInt]]
+
+  def isPrime(value: BigInt): Future[Option[Boolean]]
 }
 
 

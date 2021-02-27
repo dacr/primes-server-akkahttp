@@ -51,6 +51,7 @@ libraryDependencies ++= Seq(
   "com.github.pureconfig"  %% "pureconfig"          % versions.pureConfig,
   "org.json4s"             %% "json4s-jackson"      % versions.json4s,
   "org.json4s"             %% "json4s-ext"          % versions.json4s,
+  "com.typesafe.akka"      %% "akka-actor-typed"    % versions.akka,
   "com.typesafe.akka"      %% "akka-http"           % versions.akkaHttp,
   "com.typesafe.akka"      %% "akka-http-caching"   % versions.akkaHttp,
   "com.typesafe.akka"      %% "akka-stream"         % versions.akka,

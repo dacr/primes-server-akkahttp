@@ -11,8 +11,10 @@ import yamusca.imports._
 import yamusca.implicits._
 
 case class HomeContext(
-  context:PageContext,
-  randomPrimeNumber: String
+  context: PageContext,
+  randomPrimeNumber: String,
+  computedCount: String,
+  maxKnown: String
 )
 
 case class HomeRouting(dependencies: ServiceDependencies) extends Routing {
@@ -21,6 +23,7 @@ case class HomeRouting(dependencies: ServiceDependencies) extends Routing {
   val site = dependencies.config.primes.site
   val pageContext = PageContext(dependencies.config.primes)
 
+  implicit val ec = scala.concurrent.ExecutionContext.global
   implicit val pageContextConverter = ValueConverter.deriveConverter[PageContext]
   implicit val homeContextConverter = ValueConverter.deriveConverter[HomeContext]
 
@@ -29,14 +32,22 @@ case class HomeRouting(dependencies: ServiceDependencies) extends Routing {
 
   def home: Route = pathEndOrSingleSlash {
     get {
-      val homeContext = HomeContext(
-        context = pageContext,
-        randomPrimeNumber = dependencies.engine.randomPrime().toString()
-      )
-      val content = homeLayout(homeContext.asContext)
-      val contentType = `text/html` withCharset `UTF-8`
       complete {
-        HttpResponse(entity = HttpEntity(contentType, content), headers = noClientCacheHeaders)
+        dependencies.engine.maxKnownPrimesNumber().map { maxKnown =>
+          dependencies.engine.knownPrimesNumberCount().map { computedCount =>
+            dependencies.engine.randomPrime().map { primeNumber =>
+              val homeContext = HomeContext(
+                context = pageContext,
+                randomPrimeNumber = primeNumber.map(_.toString).getOrElse("no already computed prime number available"),
+                computedCount = computedCount.toString,
+                maxKnown = maxKnown.map(_.toString).getOrElse("no already computed prime number available"),
+              )
+              val content = homeLayout(homeContext.asContext)
+              val contentType = `text/html` withCharset `UTF-8`
+              HttpResponse(entity = HttpEntity(contentType, content), headers = noClientCacheHeaders)
+            }
+          }
+        }
       }
     }
   }
