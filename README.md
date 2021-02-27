@@ -1,5 +1,8 @@
 # ![](images/logo-base-32.png) Primes server [![][PrimesServerAkkaMvnImg]][PrimesServerAkkaMvnLnk]
 
+It has been deployed on https://mapland.fr/primes
+
+
 ## Quick local start
 
 Thanks to [coursier][cs] from @alxarchambault,
