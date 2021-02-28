@@ -28,7 +28,6 @@ case class ServiceRoutes(dependencies: ServiceDependencies) {
   val config = dependencies.config.primes
 
   private val rawRoutes: Route = List(
-    //ContentRouting(dependencies),
     PrimesRouting(dependencies),
     HomeRouting(dependencies),
     AdminRouting(dependencies),
