@@ -6,7 +6,7 @@ It has been deployed on https://mapland.fr/primes
 ## Quick local start
 
 Thanks to [coursier][cs] from @alxarchambault,
-this application is quite easy, just execute :
+this application is quite easy to start, just execute :
 ```
 cs launch fr.janalyse::primes-server-akkahttp:1.0.2
 ```
