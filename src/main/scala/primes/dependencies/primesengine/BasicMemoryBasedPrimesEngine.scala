@@ -22,6 +22,8 @@ object BasicMemoryBasedPrimesEngine {
 class BasicMemoryBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngine {
   val logger = LoggerFactory.getLogger(getClass)
   val maxPrimesCount = primesConfig.behavior.maxPrimesCount
+  val maxPrimesValueLimit = primesConfig.behavior.maxPrimesValueLimit
+  val alreadyComputedCount = 0L
 
   // -----------------------------------------------------------------
 
@@ -99,14 +101,19 @@ class BasicMemoryBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEng
 
   // -----------------------------------------------------------------
 
+  def primesComputeShouldContinue(prime:BigInt, pos:BigInt, alreadyComputedCount:BigInt):Boolean = {
+    (maxPrimesCount.isEmpty || (pos + alreadyComputedCount) <= maxPrimesCount.get) &&
+      (maxPrimesValueLimit.isEmpty || (prime <= maxPrimesValueLimit.get))
+  }
+
   val primesGenerator = Future {
-    logger.info(s"Start feeding with primes number up to $maxPrimesCount")
+    logger.info(s"Start feeding with primes number up to ${maxPrimesValueLimit} max value or ${maxPrimesCount} primes count reached")
     val primesGenerator = new PrimesGenerator[Long] // Faster than BigInt
     primesGenerator
       .primes
       .map(v => BigInt(v))
       .zip(Iterator.iterate(BigInt(1))(_ + 1))
-      .takeWhile{case (prime, pos) => pos < maxPrimesCount}
+      .takeWhile{case (prime, pos) => primesComputeShouldContinue(prime, pos, alreadyComputedCount) }
       .map{case (prime, pos) => prime}
       .foreach { value => primesSystem ! NewPrimeComputed(value)}
   }

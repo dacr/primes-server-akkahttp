@@ -20,7 +20,9 @@ cs launch fr.janalyse::primes-server-akkahttp:1.0.2
 | PRIMES_PREFIX        | Add a prefix to all defined routes                | ""
 | PRIMES_URL           | How this service is known from outside            | "http://127.0.0.1:8080"
 | PRIMES_STORE_PATH    | Where data is stored                              | "/tmp/primes-data"
-| PRIMES_MAX_COUNT     | How many primes to compute in background (BigInt) | 5000000
+| PRIMES_MAX_COUNT     | How many primes to compute in background (BigInt) | 500000000
+| PRIMES_MAX_LIMIT     | Stop primes background compute after this value   | 9223372036854775807
+
 
 [cs]: https://get-coursier.io/
 

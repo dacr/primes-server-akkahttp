@@ -53,7 +53,8 @@ case class FileSystemStorageConfig(
 
 case class Behavior(
   fileSystemStorage: FileSystemStorageConfig,
-  maxPrimesCount: BigInt,
+  maxPrimesCount: Option[BigInt],
+  maxPrimesValueLimit: Option[BigInt]
 )
 
 // Automatically populated by the build process from a generated config file

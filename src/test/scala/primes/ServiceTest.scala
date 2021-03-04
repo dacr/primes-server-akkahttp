@@ -29,7 +29,7 @@ import primes.tools.JsonImplicits
 
 class ServiceTest extends AnyWordSpec with should.Matchers with ScalatestRouteTest with JsonImplicits {
 
-  val routes = ServiceRoutes(ServiceDependencies.defaults).routes
+  val routes = ServiceRoutes(ServiceDependencies.testDefaults).routes
 
   "Primes Service" should  {
     "Respond OK when pinged" in {
