@@ -8,7 +8,7 @@ import fr.janalyse.primes.PrimesGenerator
 import org.slf4j.LoggerFactory
 import primes.PrimesConfig
 
-import java.io.{File, RandomAccessFile}
+import java.io.{File, IOException, RandomAccessFile}
 import java.nio.{ByteBuffer, LongBuffer}
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -151,8 +151,15 @@ class BasicFileBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngin
             }
             val size = toIndex - fromIndex + 1
             val result = if (size <= 0) None else {
-              readAccessFile.seek( (fromIndex + Random.nextLong(size))*8 )
-              Some(BigInt(readAccessFile.readLong()))
+              val position = (fromIndex + Random.nextLong(size))*8
+              try {
+                readAccessFile.seek(position)
+                Some(BigInt(readAccessFile.readLong()))
+              } catch {
+                case ex:IOException =>
+                  logger.warn(s"Something wrong has happened while seeking or reading @$position", ex)
+                  None
+              }
             }
             replyTo ! result
             Behaviors.same
