@@ -36,7 +36,7 @@ lazy val versions = new {
   val commonsio        = "2.8.0"
   val webjarsLocator   = "0.40"
   val yamusca          = "0.8.0"
-  val primes           = "1.2.9"
+  val primes           = "1.2.8"
 }
 
 // client side dependencies
