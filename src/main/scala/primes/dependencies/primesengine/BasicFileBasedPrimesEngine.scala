@@ -56,6 +56,7 @@ class BasicFileBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngin
   // -----------------------------------------------------------------
 
   def min(x: BigInt, y: BigInt): BigInt = if (x < y) x else y
+
   def max(x: BigInt, y: BigInt): BigInt = if (x > y) x else y
 
   // -----------------------------------------------------------------
@@ -77,34 +78,33 @@ class BasicFileBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngin
   case class CheckPrimeRequest(value: BigInt, replyTo: ActorRef[Option[Boolean]]) extends PrimesCommand
 
 
-
   // -----------------------------------------------------------------
 
   def primesBehavior(): Behavior[PrimesCommand] = {
-    val readAccessFile:RandomAccessFile = new RandomAccessFile(dataStoreFile,"r")
+    val readAccessFile: RandomAccessFile = new RandomAccessFile(dataStoreFile, "r")
     val initialFileSize = readAccessFile.length()
     val initialPrimesCount = (initialFileSize / 8)
     val initialLatestKnownPrime = initialPrimesCount match {
       case 0 => None
       case count =>
-        readAccessFile.seek((count - 1)*8)
+        readAccessFile.seek((count - 1) * 8)
         Some(BigInt(readAccessFile.readLong()))
     }
-    val writeAccessFile:RandomAccessFile = new RandomAccessFile(dataStoreFile, "rw")
+    val writeAccessFile: RandomAccessFile = new RandomAccessFile(dataStoreFile, "rw")
     writeAccessFile.seek(initialPrimesCount * 8)
 
-    def updated(primesCount:BigInt, latestKnownPrime:Option[BigInt], backgroundCompute:Option[Future[Unit]]): Behavior[PrimesCommand] = Behaviors.setup { context =>
+    def updated(primesCount: BigInt, latestKnownPrime: Option[BigInt], backgroundCompute: Option[Future[Unit]]): Behavior[PrimesCommand] = Behaviors.setup { context =>
       implicit val ec = context.executionContext
       Behaviors.receiveMessage {
         // ------------------------------
         case StartBackgroundCompute if backgroundCompute.isEmpty =>
-          val startValue:BigInt = latestKnownPrime.getOrElse(1)
+          val startValue: BigInt = latestKnownPrime.getOrElse(1)
           logger.info(s"Start or resume primes number compute from $startValue")
           val future = primesGeneratorIterator(context.self, startValue, primesCount)
-          future.onComplete{
+          future.onComplete {
             case Success(_) =>
               logger.info(s"Background primes compute has finished")
-            case Failure(th)=>
+            case Failure(th) =>
               logger.error(s"Background primes compute has failed", th)
           }
           updated(primesCount, latestKnownPrime, Some(future))
@@ -143,21 +143,21 @@ class BasicFileBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngin
           } else {
             val fromIndex = lowerLimit match {
               case None => 0L
-              case Some(limit) => nearestIndex(readAccessFile, limit.toLong, 0, (primesCount.toLong-1)*8)/8
+              case Some(limit) => nearestIndex(readAccessFile, limit.toLong, 0, primesCount.toLong - 1)
             }
             val toIndex = upperLimit match {
               case None => primesCount.toLong - 1
-              case Some(limit) => nearestIndex(readAccessFile, limit.toLong, 0, (primesCount.toLong-1)*8)/8
+              case Some(limit) => nearestIndex(readAccessFile, limit.toLong, 0, primesCount.toLong - 1 )
             }
             val size = toIndex - fromIndex + 1
             val result = if (size <= 0) None else {
-              val position = (fromIndex + Random.nextLong(size))*8
+              val position = (fromIndex + Random.nextLong(size)) * 8
               try {
                 readAccessFile.seek(position)
                 Some(BigInt(readAccessFile.readLong()))
               } catch {
-                case ex:IOException =>
-                  logger.warn(s"Something wrong has happened while seeking or reading @$position", ex)
+                case ex: IOException =>
+                  logger.warn(s"Something wrong has happened while seeking or reading position=$position fromIndex=$fromIndex toIndex=$toIndex", ex)
                   None
               }
             }
@@ -169,7 +169,7 @@ class BasicFileBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngin
           replyTo ! None
           Behaviors.same
         case CheckPrimeRequest(value, replyTo) =>
-          val result = searchValue(readAccessFile, value.toLong, 0, (initialPrimesCount.toLong-1)*8)
+          val result = searchValue(readAccessFile, value.toLong, 0, initialPrimesCount.toLong - 1)
           replyTo ! Some(result)
           Behaviors.same
       }
@@ -182,22 +182,26 @@ class BasicFileBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngin
   }
 
   // -----------------------------------------------------------------
-  def nearestIndex(access: RandomAccessFile, value:Long, leftOffset: Long, rightOffset: Long):Long = {
-    access.seek(leftOffset)
-    val leftValue = access.readLong()
-    if (value < leftValue) leftOffset else {
-      access.seek(rightOffset)
-      val rightValue = access.readLong()
-      if (value > rightValue) rightOffset else {
-        if (leftOffset > rightOffset) rightValue else {
-          val middleOffset = leftOffset + (rightOffset - leftOffset) / 2
-          access.seek(middleOffset)
-          val middleValue = access.readLong()
-          if (middleValue == value) middleOffset
-          else if (middleValue > value) nearestIndex(access, value, leftOffset, middleOffset - 8)
-          else nearestIndex(access, value, middleOffset + 8, rightOffset)
-        }
+  def nearestIndex(access: RandomAccessFile, value: Long, leftIndex: Long, rightIndex: Long): Long = {
+    if (leftIndex > rightIndex) rightIndex else {
+      val rightValue = {
+        access.seek(rightIndex*8)
+        access.readLong()
       }
+      val leftValue = {
+        access.seek(leftIndex*8)
+        access.readLong()
+      }
+      val middleOffset = leftIndex + (rightIndex - leftIndex) / 2
+      val middleValue = {
+        access.seek(middleOffset*8)
+        access.readLong()
+      }
+      if (value == middleValue) middleOffset
+      else if (value < leftValue) leftIndex
+      else if (value > rightValue) rightIndex
+      else if (middleValue > value) nearestIndex(access, value, leftIndex, middleOffset - 1)
+      else nearestIndex(access, value, middleOffset + 1, rightIndex)
     }
   }
 
@@ -205,14 +209,16 @@ class BasicFileBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngin
   // -----------------------------------------------------------------
   // binary search (recherche dichotomique)
 
-  def searchValue(access: RandomAccessFile, value:Long, leftOffset: Long, rightOffset: Long):Boolean = {
-    if (leftOffset > rightOffset) false else {
-      val middleOffset = leftOffset + (rightOffset - leftOffset) / 2
-      access.seek(middleOffset)
-      val middleValue = access.readLong()
+  def searchValue(access: RandomAccessFile, value: Long, leftIndex: Long, rightIndex: Long): Boolean = {
+    if (leftIndex > rightIndex) false else {
+      val middleIndex = leftIndex + (rightIndex - leftIndex) / 2
+      val middleValue = {
+        access.seek(middleIndex*8)
+        access.readLong()
+      }
       if (middleValue == value) true
-      else if (middleValue > value) searchValue(access, value, leftOffset, middleOffset - 8)
-      else searchValue(access, value, middleOffset + 8, rightOffset)
+      else if (middleValue > value) searchValue(access, value, leftIndex, middleIndex-1)
+      else searchValue(access, value, middleIndex+1, rightIndex)
     }
   }
 
@@ -225,21 +231,21 @@ class BasicFileBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngin
 
   // -----------------------------------------------------------------
 
-  def primesComputeShouldContinue(prime:BigInt, pos:BigInt, alreadyComputedCount:BigInt):Boolean = {
+  def primesComputeShouldContinue(prime: BigInt, pos: BigInt, alreadyComputedCount: BigInt): Boolean = {
     (maxPrimesCount.isEmpty || (pos + alreadyComputedCount) <= maxPrimesCount.get) &&
       (maxPrimesValueLimit.isEmpty || (prime <= maxPrimesValueLimit.get))
   }
 
-  def primesGeneratorIterator(receivedActor:ActorRef[NewPrimeComputed], startAfterThatValue:BigInt, alreadyComputedCount:BigInt):Future[Unit] = Future {
+  def primesGeneratorIterator(receivedActor: ActorRef[NewPrimeComputed], startAfterThatValue: BigInt, alreadyComputedCount: BigInt): Future[Unit] = Future {
     logger.info(s"Start feeding with primes number up to ${maxPrimesValueLimit} max value or ${maxPrimesCount} primes count reached")
     val primesGenerator = new PrimesGenerator[Long] // Faster than BigInt
     primesGenerator
       .primesAfter(startAfterThatValue.toLong)
       .map(v => BigInt(v))
       .zip(Iterator.iterate(BigInt(1))(_ + 1))
-      .takeWhile{case (prime, pos) => primesComputeShouldContinue(prime, pos, alreadyComputedCount)}
-      .map{case (prime, _) => prime}
-      .foreach { value => receivedActor ! NewPrimeComputed(value)}
+      .takeWhile { case (prime, pos) => primesComputeShouldContinue(prime, pos, alreadyComputedCount) }
+      .map { case (prime, _) => prime }
+      .foreach { value => receivedActor ! NewPrimeComputed(value) }
   }
 
   // -----------------------------------------------------------------
