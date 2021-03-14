@@ -8,7 +8,7 @@ It has been deployed on https://mapland.fr/primes
 Thanks to [coursier][cs] from @alxarchambault,
 this application is quite easy to start, just execute :
 ```
-cs launch fr.janalyse::primes-server-akkahttp:1.0.2
+cs launch fr.janalyse::primes-server-akkahttp:1.0.3
 ```
 
 ## Configuration
