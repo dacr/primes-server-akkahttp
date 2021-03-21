@@ -32,20 +32,20 @@ case class PageContext(
 )
 
 object PageContext {
-  def apply(webEchoConfig: PrimesConfig) = {
-    val site = webEchoConfig.site
+  def apply(config: PrimesConfig) = {
+    val site = config.site
     new PageContext(
-      title = webEchoConfig.application.name,
-      appcode = webEchoConfig.application.code,
+      title = config.application.name,
+      appcode = config.application.code,
       base = site.absolutePrefix,
       url = site.cleanedURL,
       baseURL = site.baseURL,
       apiURL = site.apiURL,
       swaggerURL = site.swaggerURL,
       swaggerUIURL = site.swaggerUserInterfaceURL,
-      projectURL =  webEchoConfig.metaInfo.projectURL,
-      buildVersion = webEchoConfig.metaInfo.version,
-      buildDateTime = webEchoConfig.metaInfo.dateTime
+      projectURL =  config.metaInfo.projectURL,
+      buildVersion = config.metaInfo.version,
+      buildDateTime = config.metaInfo.dateTime
     )
   }
 }
