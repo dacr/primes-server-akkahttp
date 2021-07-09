@@ -36,7 +36,6 @@ lazy val versions = new {
   val scalatest        = "3.2.9"
   val commonsio        = "2.10.0"
   val webjarsLocator   = "0.41"
-  val yamusca          = "0.8.1"
   val primes           = "1.2.9"
 }
 
@@ -66,9 +65,15 @@ libraryDependencies ++= Seq(
   "commons-io"             %  "commons-io"          % versions.commonsio,
   "org.scalatest"          %% "scalatest"           % versions.scalatest % Test,
   "org.webjars"            %  "webjars-locator"     % versions.webjarsLocator,
-  "com.github.eikek"       %% "yamusca-core"        % versions.yamusca,
   "fr.janalyse"            %% "primes"              % versions.primes
 )
 
 enablePlugins(JavaServerAppPackaging)
 
+enablePlugins(SbtTwirl)
+
+// TODO - to remove when twirl will be available for scala3
+libraryDependencies := libraryDependencies.value.map {
+  case module if module.name == "twirl-api" => module.cross(CrossVersion.for3Use2_13)
+  case module                               => module
+}
