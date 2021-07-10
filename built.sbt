@@ -7,6 +7,8 @@ scmInfo := Some(ScmInfo(url(s"https://github.com/dacr/primes-server-akkahttp.git
 Compile / mainClass := Some("primes.Main")
 packageBin / mainClass := Some("primes.Main")
 
+versionScheme := Some("semver-spec")
+
 scalaVersion := "2.13.6"
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-feature")
