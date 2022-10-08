@@ -1,4 +1,4 @@
-# ![](images/logo-base-32.png) Primes server [![][PrimesServerAkkaMvnImg]][PrimesServerAkkaMvnLnk]
+# ![](images/logo-base-32.png) Primes server ![tests][tests-workflow] [![License][licenseImg]][licenseLink] [![][PrimesServerAkkaMvnImg]][PrimesServerAkkaMvnLnk]
 
 It has been deployed on https://mapland.fr/primes
 
@@ -8,21 +8,20 @@ It has been deployed on https://mapland.fr/primes
 Thanks to [coursier][cs] from @alxarchambault,
 this application is quite easy to start, just execute :
 ```
-cs launch fr.janalyse::primes-server-akkahttp:1.0.3
+cs launch fr.janalyse::primes-server-akkahttp:1.0.5
 ```
 
 ## Configuration
 
-| Environment variable | Description                                       | default value
-| -------------------- | ------------------------------------------------- | -----------------
-| PRIMES_LISTEN_IP     | Listening network interface                       | "0.0.0.0"
-| PRIMES_LISTEN_PORT   | Listening port                                    | 8080
-| PRIMES_PREFIX        | Add a prefix to all defined routes                | ""
-| PRIMES_URL           | How this service is known from outside            | "http://127.0.0.1:8080"
-| PRIMES_STORE_PATH    | Where data is stored                              | "/tmp/primes-data"
-| PRIMES_MAX_COUNT     | How many primes to compute in background (BigInt) | 500000000
-| PRIMES_MAX_LIMIT     | Stop primes background compute after this value   | 9223372036854775807
-
+| Environment variable | Description                                       | default value           |
+|----------------------|---------------------------------------------------|-------------------------|
+| PRIMES_LISTEN_IP     | Listening network interface                       | "0.0.0.0"               |
+| PRIMES_LISTEN_PORT   | Listening port                                    | 8080                    |
+| PRIMES_PREFIX        | Add a prefix to all defined routes                | ""                      |
+| PRIMES_URL           | How this service is known from outside            | "http://127.0.0.1:8080" |
+| PRIMES_STORE_PATH    | Where data is stored                              | "/tmp/primes-data"      |
+| PRIMES_MAX_COUNT     | How many primes to compute in background (BigInt) | 500000000               |
+| PRIMES_MAX_LIMIT     | Stop primes background compute after this value   | 9223372036854775807     |
 
 [cs]: https://get-coursier.io/
 
@@ -33,3 +32,8 @@ cs launch fr.janalyse::primes-server-akkahttp:1.0.3
 [PrimesServerAkka]:       https://github.com/dacr/primes-server-akkahttp
 [PrimesServerAkkaMvnImg]: https://img.shields.io/maven-central/v/fr.janalyse/primes-server-akkahttp_2.13.svg
 [PrimesServerAkkaMvnLnk]: https://search.maven.org/#search%7Cga%7C1%7Cfr.janalyse.primes-server-akkahttp
+
+[tests-workflow]: https://github.com/dacr/primes-server-akkahttp/actions/workflows/scala.yml/badge.svg
+
+[licenseImg]: https://img.shields.io/github/license/dacr/primes-server-akkahttp.svg
+[licenseLink]: LICENSE
