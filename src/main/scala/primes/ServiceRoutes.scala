@@ -16,8 +16,8 @@
 
 package primes
 
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
 import primes.routing.{AdminRouting, AssetsRouting, HomeRouting, SwaggerRouting, PrimesRouting}
 
 /**

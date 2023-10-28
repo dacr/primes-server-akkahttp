@@ -15,7 +15,7 @@
  */
 package primes
 
-import akka.http.scaladsl.testkit.ScalatestRouteTest
+import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 import org.scalatest.wordspec._
 import org.scalatest.matchers._
 import org.scalatest.OptionValues._
@@ -34,7 +34,7 @@ class ServiceTest extends AnyWordSpec with should.Matchers with ScalatestRouteTe
   "Primes Service" should  {
     "Respond OK when pinged" in {
       Get("/health") ~> routes ~> check {
-        import de.heikoseeberger.akkahttpjson4s.Json4sSupport._
+        import com.github.pjfanning.pekkohttpjson4s.Json4sSupport._
         responseAs[Health] shouldBe Health(true,"alive")
       }
     }

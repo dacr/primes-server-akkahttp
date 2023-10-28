@@ -1,9 +1,9 @@
 package primes.dependencies.primesengine
 
-import akka.actor.typed.scaladsl.AskPattern._
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
-import akka.util.Timeout
+import org.apache.pekko.actor.typed.scaladsl.AskPattern._
+import org.apache.pekko.actor.typed.scaladsl.Behaviors
+import org.apache.pekko.actor.typed.{ActorRef, ActorSystem, Behavior}
+import org.apache.pekko.util.Timeout
 import fr.janalyse.primes.PrimesGenerator
 import org.slf4j.LoggerFactory
 import primes.PrimesConfig
