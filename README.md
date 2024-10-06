@@ -5,11 +5,12 @@ It has been deployed on https://mapland.fr/primes
 
 ## Quick local start
 
-Thanks to [coursier][cs] from @alxarchambault,
+Thanks to [scala-cli][scl],
 this application is quite easy to start, just execute :
 ```
-cs launch fr.janalyse::primes-server-akkahttp:1.0.5
+scala-cli -S 2.13.15 --dep fr.janalyse::primes-server-akkahttp:1.0.7 -e 'primes.Main.main(args)'
 ```
+
 
 ## Configuration
 
@@ -24,6 +25,7 @@ cs launch fr.janalyse::primes-server-akkahttp:1.0.5
 | PRIMES_MAX_LIMIT     | Stop primes background compute after this value   | 9223372036854775807     |
 
 [cs]: https://get-coursier.io/
+[scl]: https://scala-cli.virtuslab.org/
 
 [deployed]:   https://mapland.fr/primes
 [primes-lib]:  https://github.com/dacr/primes
