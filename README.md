@@ -8,7 +8,7 @@ It has been deployed on https://mapland.fr/primes
 Thanks to [scala-cli][scl],
 this application is quite easy to start, just execute :
 ```
-scala-cli -S 2.13.15 --dep fr.janalyse::primes-server-akkahttp:1.0.7 -e 'primes.Main.main(args)'
+scala-cli --dep fr.janalyse::primes-server-akkahttp:1.0.8 -e 'primes.Main.main(args)'
 ```
 
 

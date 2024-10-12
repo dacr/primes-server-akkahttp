@@ -1,6 +1,6 @@
 package primes.dependencies.primesengine
 
-import org.apache.pekko.actor.typed.scaladsl.AskPattern._
+import org.apache.pekko.actor.typed.scaladsl.AskPattern.*
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.apache.pekko.actor.typed.{ActorRef, ActorSystem, Behavior}
 import org.apache.pekko.util.Timeout
@@ -10,8 +10,8 @@ import primes.PrimesConfig
 
 import java.io.{File, IOException, RandomAccessFile}
 import java.nio.{ByteBuffer, LongBuffer}
-import scala.concurrent.Future
-import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.duration.*
 import scala.util.{Failure, Random, Success}
 
 object BasicFileBasedPrimesEngine {
@@ -226,7 +226,7 @@ class BasicFileBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngin
   // -----------------------------------------------------------------
 
   implicit val primesSystem: ActorSystem[PrimesCommand] = ActorSystem(primesBehavior(), "PrimesActorSystem")
-  implicit val ec = primesSystem.executionContext
+  implicit val ec: ExecutionContextExecutor = primesSystem.executionContext
   implicit val timeout: Timeout = 3.seconds
 
   // -----------------------------------------------------------------
@@ -251,15 +251,15 @@ class BasicFileBasedPrimesEngine(primesConfig: PrimesConfig) extends PrimesEngin
   // -----------------------------------------------------------------
 
   override def maxKnownPrimesNumber(): Future[Option[BigInt]] = {
-    primesSystem.ask(MaxKnownPrimesNumberRequest)
+    primesSystem.ask(MaxKnownPrimesNumberRequest.apply)
   }
 
   override def knownPrimesNumberCount(): Future[BigInt] = {
-    primesSystem.ask(KnownPrimesNumberCountRequest)
+    primesSystem.ask(KnownPrimesNumberCountRequest.apply)
   }
 
   override def randomPrime(): Future[Option[BigInt]] = {
-    primesSystem.ask(RandomPrimeRequest)
+    primesSystem.ask(RandomPrimeRequest.apply)
   }
 
   override def randomPrimeBetween(lowerLimit: Option[BigInt], upperLimit: Option[BigInt]): Future[Option[BigInt]] = {

@@ -17,23 +17,23 @@ package primes
 
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
-import pureconfig.ConfigSource
-import pureconfig.generic.auto._
+import pureconfig.*
+import pureconfig.generic.derivation.default.*
 
 case class ApplicationConfig(
   name: String,
   code: String,
-)
+) derives ConfigReader
 
 case class HttpConfig(
   listeningInterface: String,
   listeningPort: Int,
-)
+) derives ConfigReader
 
 case class SiteConfig(
   prefix: Option[String],
   url: String
-) {
+) derives ConfigReader {
   val cleanedPrefix = prefix.map(_.trim.replaceAll("/+$", "")).filter(_.size > 0)
   val cleanedURL = url.trim.replaceAll("/+$", "")
   val absolutePrefix = cleanedPrefix.map(p => s"/$p").getOrElse("")
@@ -45,17 +45,17 @@ case class SiteConfig(
 
 case class Content(
   title:String,
-)
+) derives ConfigReader
 
 case class FileSystemStorageConfig(
   path: String
-)
+) derives ConfigReader
 
 case class Behavior(
   fileSystemStorage: FileSystemStorageConfig,
   maxPrimesCount: Option[BigInt],
   maxPrimesValueLimit: Option[BigInt]
-)
+) derives ConfigReader
 
 // Automatically populated by the build process from a generated config file
 case class MetaConfig(
@@ -66,7 +66,7 @@ case class MetaConfig(
   buildDateTime: Option[String],
   buildUUID: Option[String],
   contactEmail: Option[String]
-) {
+) derives ConfigReader {
   def version = buildVersion.getOrElse("x.y.z")
   def dateTime = buildDateTime.getOrElse("?")
   def uuid = buildUUID.getOrElse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
@@ -80,13 +80,13 @@ case class PrimesConfig(
   content:Content,
   behavior: Behavior,
   metaInfo: MetaConfig
-)
+) derives ConfigReader
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 case class ServiceConfig(
   primes:PrimesConfig
-)
+) derives ConfigReader
 
 object ServiceConfig {
   def apply(): ServiceConfig = {

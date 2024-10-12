@@ -15,14 +15,15 @@
  */
 package primes.routing
 
-import org.apache.pekko.http.scaladsl.model._
-import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.model.*
+import org.apache.pekko.http.scaladsl.server.Directives.*
 import org.apache.pekko.http.scaladsl.server.Route
-import com.github.pjfanning.pekkohttpjson4s.Json4sSupport._
+import com.github.pjfanning.pekkohttpjson4s.Json4sSupport.*
 import primes.ServiceDependencies
 import primes.tools.DateTimeTools
 
 import java.util.UUID
+import scala.concurrent.ExecutionContextExecutor
 
 case class PrimesRouting(dependencies: ServiceDependencies) extends Routing with DateTimeTools {
   val apiURL = dependencies.config.primes.site.apiURL
@@ -31,7 +32,7 @@ case class PrimesRouting(dependencies: ServiceDependencies) extends Routing with
   val startedDate = now()
   val instanceUUID = UUID.randomUUID().toString
 
-  implicit val ec = scala.concurrent.ExecutionContext.global
+  implicit val ec: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
 
   override def routes: Route = pathPrefix("api") {
     concat(info, random)
