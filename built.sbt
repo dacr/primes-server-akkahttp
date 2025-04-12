@@ -4,29 +4,29 @@ description  := "Primes number http service with API"
 
 licenses += "NON-AI-APACHE2" -> url(s"https://github.com/non-ai-licenses/non-ai-licenses/blob/main/NON-AI-APACHE2")
 
-scalaVersion := "3.5.1"
+scalaVersion := "3.6.4"
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-feature")
 
 lazy val versions = new {
   // client side dependencies
-  val swaggerui = "5.17.14"
-  val bootstrap = "5.3.3"
+  val swaggerui = "5.20.7"
+  val bootstrap = "5.3.5"
   val jquery    = "3.7.1"
   val awesome   = "6.5.2"
 
   // server side dependencies
-  val pureConfig      = "0.17.7"
-  val pekko           = "1.1.2"
+  val pureConfig      = "0.17.8"
+  val pekko           = "1.1.3"
   val pekkoHttp       = "1.1.0"
-  val pekkoHttpJson4s = "3.0.0"
+  val pekkoHttpJson4s = "3.1.0"
   val json4s          = "4.0.7"
-  val logback         = "1.5.10"
-  val slf4j           = "2.0.16"
+  val logback         = "1.5.18"
+  val slf4j           = "2.0.17"
   val scalatest       = "3.2.19"
-  val commonsio       = "2.15.0"
+  val commonsio       = "2.19.0"
   val webjarsLocator  = "0.52"
-  val primes          = "1.2.13"
+  val primes          = "1.2.14"
 }
 
 // client side dependencies
@@ -83,3 +83,6 @@ developers := List(
     url = url("https://github.com/dacr")
   )
 )
+
+Universal / topLevelDirectory := None
+Universal / packageName       := s"${name.value}"
