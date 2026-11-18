@@ -10,23 +10,28 @@
   utils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs { inherit system; };
+    jdk = pkgs.jdk25;
+    jdkHeadless = pkgs.jdk25_headless;
+    sbtJdk = pkgs.sbt.override { jre = jdk; };
+    sbtJdkHeadless = pkgs.sbt.override { jre = jdkHeadless; };
+    metalsJdk = pkgs.metals.override { jre = jdk; };
   in {
     # ---------------------------------------------------------------------------
     # nix develop
     devShells.default = pkgs.mkShell {
-      buildInputs = [pkgs.sbt pkgs.metals pkgs.jdk21 pkgs.hello];
+      buildInputs = [sbtJdk metalsJdk jdk pkgs.hello];
     };
 
     # ---------------------------------------------------------------------------
     # nix build
-    packages.default = sbt.mkSbtDerivation.${system} {
+    packages.default = (sbt.mkSbtDerivation.${system}.withOverrides { sbt = sbtJdkHeadless; }) {
       pname = "nix-primes";
       version = builtins.elemAt (builtins.match ''[^"]+"(.*)".*'' (builtins.readFile ./version.sbt)) 0;
       depsSha256 = "sha256-Q4xb9qYpOYk5Hf8sCe8r2jULLEPVX5DDxw/OphCR72I=";
 
       src = ./.;
 
-      buildInputs = [pkgs.sbt pkgs.jdk21_headless pkgs.makeWrapper];
+      buildInputs = [sbtJdkHeadless jdkHeadless pkgs.makeWrapper];
 
       buildPhase = "sbt Universal/packageZipTarball";
 
@@ -34,12 +39,13 @@
           mkdir -p $out
           tar xf target/universal/primes-server-akkahttp.tgz --directory $out
           makeWrapper $out/bin/primes-server-akkahttp $out/bin/nix-primes \
+            --set JAVA_HOME ${jdkHeadless.home} \
             --set PATH ${pkgs.lib.makeBinPath [
               pkgs.gnused
               pkgs.gawk
               pkgs.coreutils
               pkgs.bash
-              pkgs.jdk21_headless
+              jdkHeadless
             ]}
       '';
     };
