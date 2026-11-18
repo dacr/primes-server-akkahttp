@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     utils.url = "github:numtide/flake-utils";
     sbt.url = "github:zaninime/sbt-derivation";
     sbt.inputs.nixpkgs.follows = "nixpkgs";
@@ -22,7 +22,7 @@
     packages.default = sbt.mkSbtDerivation.${system} {
       pname = "nix-primes";
       version = builtins.elemAt (builtins.match ''[^"]+"(.*)".*'' (builtins.readFile ./version.sbt)) 0;
-      depsSha256 = "sha256-GCG+BPeo7U26GX2Qke4MXfO3Q4n80iOcK7SXeNl1SDI=";
+      depsSha256 = "sha256-Q4xb9qYpOYk5Hf8sCe8r2jULLEPVX5DDxw/OphCR72I=";
 
       src = ./.;
 
