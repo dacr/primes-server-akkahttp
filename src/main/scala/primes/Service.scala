@@ -24,18 +24,18 @@ import org.slf4j.Logger
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 case class Service(dependencies: ServiceDependencies, servicesRoutes: ServiceRoutes) {
-  val appConfig = dependencies.config.primes
-  val version = appConfig.metaInfo.version
-  val appName = appConfig.application.name
-  val appCode = appConfig.application.code
+  val appConfig         = dependencies.config.primes
+  val version           = appConfig.metaInfo.version
+  val appName           = appConfig.application.name
+  val appCode           = appConfig.application.code
   val interface: String = appConfig.http.listeningInterface
-  val port: Int = appConfig.http.listeningPort
+  val port: Int         = appConfig.http.listeningPort
 
   private val logger: Logger = org.slf4j.LoggerFactory.getLogger(appCode)
   logger.info(s"$appCode service version $version is starting")
 
-  val config = ConfigFactory.load() // akka specific config is accessible under the path named 'primes'
-  implicit val system: ActorSystem = org.apache.pekko.actor.ActorSystem(s"akka-http-$appCode-system", config.getConfig("primes"))
+  val config                                              = ConfigFactory.load() // akka specific config is accessible under the path named 'primes'
+  implicit val system: ActorSystem                        = org.apache.pekko.actor.ActorSystem(s"akka-http-$appCode-system", config.getConfig("primes"))
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   val bindingFuture: Future[Http.ServerBinding] = Http().newServerAt(interface = interface, port = port).bindFlow(servicesRoutes.routes)
@@ -57,7 +57,7 @@ case class Service(dependencies: ServiceDependencies, servicesRoutes: ServiceRou
   }
 
   // Can be used to avoid automatic exit from ammonite scripts
-  def waitSystemTerminate():Unit = {
+  def waitSystemTerminate(): Unit = {
     println("Waiting for end of operations...")
     import scala.concurrent.Await
     import scala.concurrent.duration.Duration

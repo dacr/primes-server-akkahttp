@@ -18,23 +18,23 @@ package primes
 import primes.dependencies.primesengine.{BasicFileBasedPrimesEngine, BasicMemoryBasedPrimesEngine, PrimesEngine}
 
 trait ServiceDependencies {
-  val config:ServiceConfig
-  val engine:PrimesEngine
+  val config: ServiceConfig
+  val engine: PrimesEngine
 }
 
 object ServiceDependencies {
-  def defaults:ServiceDependencies = {
+  def defaults: ServiceDependencies     = {
     val chosenConfig = ServiceConfig()
     new ServiceDependencies {
       override val config: ServiceConfig = chosenConfig
-      override val engine: PrimesEngine = BasicFileBasedPrimesEngine(chosenConfig.primes)
+      override val engine: PrimesEngine  = BasicFileBasedPrimesEngine(chosenConfig.primes)
     }
   }
-  def testDefaults:ServiceDependencies = {
+  def testDefaults: ServiceDependencies = {
     val chosenConfig = ServiceConfig()
     new ServiceDependencies {
       override val config: ServiceConfig = chosenConfig
-      override val engine: PrimesEngine = BasicMemoryBasedPrimesEngine(chosenConfig.primes)
+      override val engine: PrimesEngine  = BasicMemoryBasedPrimesEngine(chosenConfig.primes)
     }
   }
 }

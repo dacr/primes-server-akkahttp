@@ -6,7 +6,7 @@ trait PrimesEngine {
 
   def knownPrimesNumberCount(): Future[BigInt]
 
-  def maxKnownPrimesNumber():Future[Option[BigInt]]
+  def maxKnownPrimesNumber(): Future[Option[BigInt]]
 
   def randomPrime(): Future[Option[BigInt]]
 
@@ -14,5 +14,3 @@ trait PrimesEngine {
 
   def isPrime(value: BigInt): Future[Option[Boolean]]
 }
-
-
