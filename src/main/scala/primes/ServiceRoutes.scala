@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 David Crosson
+ * Copyright 2020-2026 David Crosson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package primes
 
-import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Directives.*
 import org.apache.pekko.http.scaladsl.server.Route
-import primes.routing.{AdminRouting, AssetsRouting, HomeRouting, SwaggerRouting, PrimesRouting}
+import primes.routing.{AdminRouting, AssetsRouting, HomeRouting, PrimesRouting, SwaggerRouting}
+import sttp.tapir.server.pekkohttp.PekkoHttpServerInterpreter
 
-/**
- * Prepare (reduce & prefix) service routes
- * @param dependencies
- */
+import scala.concurrent.ExecutionContext
+
+/** Prepare (reduce & prefix) service routes
+  * @param dependencies
+  */
 case class ServiceRoutes(dependencies: ServiceDependencies) {
+  private given ExecutionContext = ExecutionContext.global
+
   val config = dependencies.config.primes
 
-  private val rawRoutes: Route = List(
+  val endpoints = List(
+    SwaggerRouting(dependencies),
     PrimesRouting(dependencies),
-    HomeRouting(dependencies),
     AdminRouting(dependencies),
-    AssetsRouting(dependencies),
-    SwaggerRouting(dependencies)
-  ).map(_.routes).reduce(_ ~ _)
+    HomeRouting(dependencies),
+    AssetsRouting(dependencies)
+  ).flatMap(_.endpoints)
+
+  private val rawRoutes: Route = PekkoHttpServerInterpreter().toRoute(endpoints)
 
   val routes: Route =
-    config
-      .site
-      .cleanedPrefix
+    config.site.cleanedPrefix
       .map { p =>
         pathPrefix(p) {
           rawRoutes
         }
-      }.getOrElse(rawRoutes)
+      }
+      .getOrElse(rawRoutes)
 }

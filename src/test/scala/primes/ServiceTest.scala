@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 David Crosson
+ * Copyright 2020-2026 David Crosson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,21 @@
  */
 package primes
 
+import com.github.plokhotnyuk.jsoniter_scala.core.readFromString
+import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
-import org.scalatest.wordspec._
-import org.scalatest.matchers._
-import org.scalatest.OptionValues._
-import org.json4s.{DefaultFormats, Formats}
-import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
-import org.json4s.jackson.Serialization
-import primes.{ServiceDependencies, ServiceRoutes}
-import primes.routing.Health
-import primes.tools.JsonImplicits
+import org.scalatest.matchers.*
+import org.scalatest.wordspec.*
+import primes.api.{ApiError, Health, ServiceInfo}
 
-
-class ServiceTest extends AnyWordSpec with should.Matchers with ScalatestRouteTest with JsonImplicits {
+class ServiceTest extends AnyWordSpec with should.Matchers with ScalatestRouteTest {
 
   val routes = ServiceRoutes(ServiceDependencies.testDefaults).routes
 
-  "Primes Service" should  {
+  "Primes Service" should {
     "Respond OK when pinged" in {
       Get("/health") ~> routes ~> check {
-        import com.github.pjfanning.pekkohttpjson4s.Json4sSupport._
-        responseAs[Health] shouldBe Health(true,"alive")
+        readFromString[Health](responseAs[String]) shouldBe Health(true, "alive")
       }
     }
     "Be able to return a static asset" in {
@@ -57,6 +51,35 @@ class ServiceTest extends AnyWordSpec with should.Matchers with ScalatestRouteTe
         responseAs[String] should include regex "Primes"
       }
     }
+    "Respond to info request" in {
+      Get("/api/info") ~> routes ~> check {
+        readFromString[ServiceInfo](responseAs[String]).version should not be empty
+      }
+    }
+    "Respond to random request" in {
+      Get("/api/random?lowerLimit=2&upperLimit=1000") ~> routes ~> check {
+        status match {
+          case StatusCodes.OK       => BigInt(responseAs[String].trim) should (be >= BigInt(2) and be <= BigInt(1000))
+          case StatusCodes.NotFound => readFromString[ApiError](responseAs[String]).message should not be empty
+          case other                => fail(s"unexpected status $other")
+        }
+      }
+    }
+    "Reject invalid random request parameters" in {
+      Get("/api/random?lowerLimit=abc") ~> routes ~> check {
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+    "Serve the generated API specification" in {
+      Get("/swagger/swagger.json") ~> routes ~> check {
+        val spec = responseAs[String]
+        spec should include("/api/random")
+        spec should include("/api/info")
+        spec should include("lowerLimit")
+      }
+      Get("/swagger/docs.yaml") ~> routes ~> check {
+        responseAs[String] should include("openapi")
+      }
+    }
   }
 }
-

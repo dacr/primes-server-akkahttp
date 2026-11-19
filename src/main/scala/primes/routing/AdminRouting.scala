@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 David Crosson
+ * Copyright 2020-2026 David Crosson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,15 @@
  */
 package primes.routing
 
-import org.apache.pekko.http.scaladsl.server.Directives._
-import org.apache.pekko.http.scaladsl.server.Route
-import com.github.pjfanning.pekkohttpjson4s.Json4sSupport._
 import primes.ServiceDependencies
+import primes.api.{ApiEndpoints, Health}
 
-
-case class Health(alive: Boolean = true, description: String = "alive")
-
-object AdminRouting {
-  val alive = Health()
-}
+import scala.concurrent.Future
 
 case class AdminRouting(dependencies: ServiceDependencies) extends Routing {
-  private def ping: Route = path("health") {
-    get {
-      complete(AdminRouting.alive)
-    }
-  }
+  private val alive = Health()
 
-  override def routes: Route = ping
+  private val health = ApiEndpoints.health.serverLogicSuccess[Future](_ => Future.successful(alive))
+
+  override def endpoints = List(health)
 }

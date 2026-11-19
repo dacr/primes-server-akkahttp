@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 David Crosson
+ * Copyright 2020-2026 David Crosson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,38 +15,35 @@
  */
 package primes.routing
 
-
-import org.apache.pekko.http.scaladsl.server.Directives._
-import org.apache.pekko.http.scaladsl.server.Route
-import org.apache.pekko.http.scaladsl.server.directives.ContentTypeResolver.Default
 import org.webjars.WebJarAssetLocator
 import primes.ServiceDependencies
+import sttp.tapir.*
+import sttp.tapir.files.*
 
-case class AssetsRouting(dependencies:ServiceDependencies) extends Routing {
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters.*
 
-  private val assetLocator = new WebJarAssetLocator()
+case class AssetsRouting(dependencies: ServiceDependencies) extends Routing {
+  private val classLoader = getClass.getClassLoader
 
-  private def staticRoutes:Route = {
-    val staticResourcesSubDirectories = List("js", "css", "images", "fonts", "pdf", "txt")
-    val routes = for {resourceDirectory <- staticResourcesSubDirectories} yield {
-      path(resourceDirectory / RemainingPath) { resource =>
-        respondWithHeaders(clientCacheHeaders) {
-          getFromResource(s"primes/static-content/$resourceDirectory/${resource.toString()}")
-        }
-      }
-    }
-    routes.reduce(_ ~ _)
+  private val staticResourcesSubDirectories = List("js", "css", "images", "fonts", "pdf", "txt")
+
+  private val staticEndpoints = staticResourcesSubDirectories.map { resourceDirectory =>
+    staticResourcesGetServerEndpoint[Future](resourceDirectory)(
+      classLoader,
+      s"primes/static-content/$resourceDirectory",
+      extraHeaders = List(Routing.clientCacheHeader)
+    )
   }
 
-  private def assetsRoutes:Route =
-    rejectEmptyResponse  {
-      path("assets" / Segment / RemainingPath ) { (webjar, path) =>
-        respondWithHeaders(clientCacheHeaders) {
-          val resourcePath = assetLocator.getFullPath(webjar, path.toString())
-          getFromResource(resourcePath)
-        }
-      }
-    }
+  // webjars are exposed without their version : /assets/<webjar>/<path>
+  private val webjarsEndpoints = new WebJarAssetLocator().getWebJars.asScala.toList.sortBy(_._1).map { (webjar, version) =>
+    staticResourcesGetServerEndpoint[Future]("assets" / webjar)(
+      classLoader,
+      s"META-INF/resources/webjars/$webjar/$version",
+      extraHeaders = List(Routing.clientCacheHeader)
+    )
+  }
 
-  override def routes:Route = assetsRoutes ~ staticRoutes
+  override def endpoints = webjarsEndpoints ++ staticEndpoints
 }

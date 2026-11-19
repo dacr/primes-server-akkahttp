@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 David Crosson
+ * Copyright 2020-2026 David Crosson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,57 +15,33 @@
  */
 package primes.routing
 
-import org.apache.pekko.http.scaladsl.model.*
-import org.apache.pekko.http.scaladsl.server.Directives.*
-import org.apache.pekko.http.scaladsl.server.Route
-import com.github.pjfanning.pekkohttpjson4s.Json4sSupport.*
 import primes.ServiceDependencies
+import primes.api.{ApiEndpoints, ApiError, ServiceInfo}
 import primes.tools.DateTimeTools
 
 import java.util.UUID
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ExecutionContext, Future}
 
 case class PrimesRouting(dependencies: ServiceDependencies) extends Routing with DateTimeTools {
-  val apiURL = dependencies.config.primes.site.apiURL
-  val meta = dependencies.config.primes.metaInfo
-  val engine = dependencies.engine
-  val startedDate = now()
-  val instanceUUID = UUID.randomUUID().toString
+  private given ExecutionContext = ExecutionContext.global
 
-  implicit val ec: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
+  private val meta   = dependencies.config.primes.metaInfo
+  private val engine = dependencies.engine
 
-  override def routes: Route = pathPrefix("api") {
-    concat(info, random)
+  private val serviceInfo = ServiceInfo(
+    instanceUUID = UUID.randomUUID(),
+    startedOn = epochToUTCDateTime(now()),
+    version = meta.version,
+    buildDate = meta.buildDateTime
+  )
+
+  private val notFound = ApiError("Invalid range or no primes number found")
+
+  private val info = ApiEndpoints.info.serverLogicSuccess[Future](_ => Future.successful(serviceInfo))
+
+  private val random = ApiEndpoints.random.serverLogic[Future] { (lowerLimit, upperLimit) =>
+    engine.randomPrimeBetween(lowerLimit, upperLimit).map(_.toRight(notFound))
   }
 
-  def info: Route = {
-    get {
-      path("info") {
-        complete(
-          Map(
-            "instanceUUID" -> instanceUUID,
-            "startedOn" -> epochToUTCDateTime(startedDate),
-            "version" -> meta.version,
-            "buildDate" -> meta.buildDateTime
-          )
-        )
-      }
-    }
-  }
-
-  def random: Route = {
-    get {
-      path("random") {
-        parameters(
-          "lowerLimit".as[BigInt].optional,
-          "upperLimit".as[BigInt].optional
-        ) { (lowerLimit, upperLimit) =>
-          onSuccess(engine.randomPrimeBetween(lowerLimit, upperLimit)) {
-            case Some(value) => complete(value)
-            case None => complete(StatusCodes.NotFound -> "Invalid range or no primes number found")
-          }
-        }
-      }
-    }
-  }
+  override def endpoints = List(info, random)
 }
