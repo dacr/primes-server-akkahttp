@@ -27,7 +27,7 @@
     packages.default = (sbt.mkSbtDerivation.${system}.withOverrides { sbt = sbtJdkHeadless; }) {
       pname = "nix-primes";
       version = builtins.elemAt (builtins.match ''[^"]+"(.*)".*'' (builtins.readFile ./version.sbt)) 0;
-      depsSha256 = "sha256-B74dT1pyncr0gz8LldUVpi7UKRN5Dymzh91MEoTr0Co=";
+      depsSha256 = "sha256-gBmfMajzAP6MuU2XOSWqvUKYbN/H0isOzEc8iD4GfOI=";
 
       src = ./.;
 
